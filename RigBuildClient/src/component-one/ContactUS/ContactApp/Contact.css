@@ -1,0 +1,49 @@
+.page {
+    position: relative;
+}
+
+.page>div {
+    position: absolute;
+    background: var(--bg-color);
+    background-color: black;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+/* .background {
+    margin: 0;
+    background-image: url("../../../assets/images/img.jpg");
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Raleway', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-top: 60px;
+    border-left: 10px solid var(--primary-color);
+    border-right: 10px solid var(--primary-color);
+} */
+
+.background {
+    width: 200px;
+    height: 200px;
+    display: block;
+    position: relative;
+  }
+  
+.background::after {
+    content: "";
+    /* //background: url('../../../assets/images/img.jpg'); */
+    opacity: 0.5;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;   
+  }
+    
+  

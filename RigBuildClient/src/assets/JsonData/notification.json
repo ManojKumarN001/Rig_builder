@@ -1,0 +1,22 @@
+[
+    {
+        "icon": "bx bx-error",
+        "content": "Reorders"
+    },
+    {
+        "icon": "bx bx-package",
+        "content": "New Notifications"
+    },
+    {
+        "icon": "bx bx-cart",
+        "content": "New Purchases"
+    },
+    {
+        "icon": "bx bx-error",
+        "content": "Returns"
+    },
+    {
+        "icon": "bx bx-cart",
+        "content": "New Orders"
+    }
+]

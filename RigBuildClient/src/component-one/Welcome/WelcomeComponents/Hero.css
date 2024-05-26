@@ -1,0 +1,22 @@
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+.hero__image {
+
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+}
+
+.hero__title {
+  position: absolute;
+  bottom: -6%;
+  right: 18%;
+  color: white;
+  font-size: 4rem;
+  padding: 220px;
+}
