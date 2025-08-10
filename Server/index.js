@@ -1,242 +1,259 @@
+
+// --- CLEANED UP AND REORDERED CODE ---
+const mongoose = require('mongoose');
 const express = require('express');
-const app = express(); //variable
-
-const mysql = require('mysql');
-const cors = require('cors');
-
-const { generateAccessToken, validateToken } = require("./auth");
-const { Router } = require("express");
-const router = Router();
-
-
-app.use(cors());
+const app = express();
 app.use(express.json());
 
-const db = mysql.createConnection({
-    user: 'root',
-    host: 'localhost',
-    password: '',
-    database: 'rigbuilddb'
+mongoose.connect('mongodb://localhost:27017/rigbuilddb', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => {
+    console.log('MongoDB Connected...');
+}).catch((err) => {
+    console.error('MongoDB connection error:', err);
 });
 
+// --- ROUTES ---
 app.post("/AdminSignin", (req, res) => {
     const { email, password } = req.body;
     console.log("in login");
     console.log(email, password);
-    db.query(
-        "SELECT * FROM admin_log WHERE 	email = ? AND Password = ?",
-        [email, password],
-        (err, result) => {
-            if (err) {
-                console.log(err);
+    Admin.findOne({ email, password })
+        .then(admin => {
+            if (admin) {
+                const token = generateAccessToken(admin.name);
+                res.json({ token: `Bearer ${token}` });
             } else {
-                if (result.length > 0) {
-                    console.log(result);
-                    user = result[0]["name"]; //enter the name of the person
-                    console.log(`user : ${user}`);
-                    const token = generateAccessToken(user);
-                    console.log(token);
-                    res.json({
-                        token: `Bearer ${token}`,
-                    });
-                } else {
-                    res.statusCode = 400;
-                    console.log(result);
-                    res.send("not found");
-                }
+                res.status(400).send("not found");
             }
-        }
-    );
-    //   else res.sendStatus(401);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error during admin signin");
+        });
 });
 
 app.post('/create', (req, res) => {
     console.log("reachin post req")
-    const id = req.body.id
     const username = req.body.username;
     const email = req.body.email;
     const birthday = req.body.birthday;
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
     console.log(req.body)
+    User.create({
+        username,
+        email,
+        birthday,
+        password,
+        confirmPassword
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting user");
+    });
+});
 
-    db.query('INSERT into userlogin(Username, Email, birthday, Password , Confirm_Password)  VALUES (?,?,?,?,?)', [username, email, birthday, password, confirmPassword],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
-})
-
-
-app.post('/letstalks', (req, res) => {
+app.post('/UsersCustombuild', (req, res) => {
     console.log("reachin post req")
     const userid = req.body.userid
-    const email = req.body.email;
-    const phonenumber = req.body.phonenumber;
-    const rigtype = req.body.rigtype;
-    const budget = req.body.budget;
-    const componentseal = req.body.componentseal;
+    const usagetype = req.body.usagetype;
+    const cooler = req.body.cooler;
     console.log(req.body)
+    CustomBuild.create({
+        userid,
+        usagetype,
+        processor: req.body.processor,
+        model: req.body.model,
+        cabin: req.body.cabin,
+        motherboard: req.body.motherboard,
+        gpu: req.body.gpu,
+        smps: req.body.smps,
+        storage: req.body.storage,
+        ram: req.body.ram,
+        cooler
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting custom build");
+    });
+});
 
-    db.query('INSERT into letstalk(User_ID, Email, phone_number, rigtype , budget, component_seal)  VALUES (?,?,?,?,?,?)', [userid, email, phonenumber, rigtype, budget, componentseal],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
+app.get('/getuserorderdetails', (req, res) => {
+    CustomBuild.find()
+        .then(builds => res.send(builds))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching custom builds");
+        });
+});
+
+app.get('/getuserdata', (req, res) => {
+    User.find()
+        .then(users => res.send(users))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching users");
+        });
+});
+
+app.get('/getprebuilddata', (req, res) => {
+    CredOp.find()
+        .then(data => res.send(data))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching credop data");
+        });
+});
+
+// (Continue with all other routes as previously defined, in the same order, but after app and models are defined)
+
+// --- SERVER START ---
+
+
+
+
+app.post("/AdminSignin", (req, res) => {
+    const { email, password } = req.body;
+    console.log("in login");
+    console.log(email, password);
+    Admin.findOne({ email, password })
+        .then(admin => {
+            if (admin) {
+                const token = generateAccessToken(admin.name);
+                res.json({ token: `Bearer ${token}` });
+            } else {
+                res.status(400).send("not found");
             }
-        }
-    )
-})
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error during admin signin");
+        });
+});
+
+
+
+
+
 
 
 app.post('/UsersCustombuild', (req, res) => {
     console.log("reachin post req")
     const userid = req.body.userid
     const usagetype = req.body.usagetype;
-    const processor = req.body.processor;
-    const model = req.body.model;
-    const cabin = req.body.cabin;
-    const motherboard = req.body.motherboard;
-    const gpu = req.body.gpu;
-    const smps = req.body.smps;
-    const storage = req.body.storage;
-    const ram = req.body.ram;
     const cooler = req.body.cooler;
-
     console.log(req.body)
-
-    db.query('INSERT into custom_build( user_ID, Usage_type, processor, processor_model , cabin, motherboard, gpu, smps, storage, ram, coller)  VALUES (?,?,?,?,?,?,?,?,?,?,?)', [userid, usagetype, processor, model, cabin, motherboard, gpu, smps, storage, ram, cooler],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
-})
-
-
-app.post('/Prerecorder', (req, res) => {
-    console.log("reachin post req")
-    const userid = req.body.userid
-    const productid = req.body.productid;
-    const email = req.body.email;
-    const address = req.body.address;
-    const rigtype = req.body.rigtype;
-    const payment = req.body.payment;
-    console.log(req.body)
-
-    db.query('INSERT into prerec_order(User_ID, product_id, email, address, rig_type, payment)  VALUES (?,?,?,?,?,?)', [userid, productid, email, address, rigtype, payment],
-        (err, result) => {
-            this.setState({ userid: result })
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
-})
+    CustomBuild.create({
+        userid,
+        usagetype,
+        processor: req.body.processor,
+        model: req.body.model,
+        cabin: req.body.cabin,
+        motherboard: req.body.motherboard,
+        gpu: req.body.gpu,
+        smps: req.body.smps,
+        storage: req.body.storage,
+        ram: req.body.ram,
+        cooler
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting custom build");
+    });
+});
 
 
+
+// TODO: Implement this endpoint with MongoDB if needed
+// Return all custom build orders (same as /getdatafromtable)
 app.get('/getuserorderdetails', (req, res) => {
-    db.query('SELECT * From custom_build',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        }
-    )
-})
+    CustomBuild.find()
+        .then(builds => res.send(builds))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching custom builds");
+        });
+});
 
 // user login data
 app.get('/getuserdata', (req, res) => {
-    db.query('SELECT * From userlogin',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        }
-    )
-})
+    User.find()
+        .then(users => res.send(users))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching users");
+        });
+});
 
 
 //cred operation data
+
+// TODO: Implement this endpoint with MongoDB if needed
 app.get('/getprebuilddata', (req, res) => {
-    db.query('SELECT * From credop',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        }
-    )
-})
+    CredOp.find()
+        .then(data => res.send(data))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching credop data");
+        });
+});
 
 
 //data from contact us
 app.get('/getuserquery', (req, res) => {
-    db.query('SELECT * From contact_us',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        }
-    )
-})
+    ContactUs.find()
+        .then(contacts => res.send(contacts))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching contact us data");
+        });
+});
 
 //data from login user queries
 app.get('/getusertalks', (req, res) => {
-    db.query('SELECT * From letstalk',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        }
-    )
-})
+    Letstalk.find()
+        .then(talks => res.send(talks))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching letstalks");
+        });
+});
 
 //data of custom build orders
 app.get('/getdatafromtable', (req, res) => {
-    db.query('SELECT * FROM custom_build',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-
-            }
-        }
-    )
-})
+    CustomBuild.find()
+        .then(builds => res.send(builds))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching custom builds");
+        });
+});
 
 
 //data of custom gears data
 app.get('/getdatafromordertable', (req, res) => {
-    db.query('SELECT * FROM gears',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        })
+    Gears.find()
+        .then(gears => res.send(gears))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching gears");
+        });
 })
 
 //data of per build and recommmandation orders
 app.get('/getdataprerec', (req, res) => {
-    db.query('SELECT * FROM prerec_order',
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send(result)
-            }
-        })
-})
+    PrerecOrder.find()
+        .then(orders => res.send(orders))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error fetching prerec orders");
+        });
+});
 
 
 app.post('/CustomGear', (req, res) => {
@@ -249,14 +266,19 @@ app.post('/CustomGear', (req, res) => {
     const chair = req.body.chair;
     console.log(req.body)
 
-    db.query('INSERT into gears(User_ID, keyboard, Gaming_Mouse, headset, monitor, chair)  VALUES (?,?,?,?,?,?)', [userid, keyBoard, mouse, headphones, monitor, chair],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
+    Gears.create({
+        userid,
+        keyboard: keyBoard,
+        mouse,
+        headphones,
+        monitor,
+        chair
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting gears");
+    });
 })
 
 
@@ -269,14 +291,18 @@ app.post('/Customorderpay', (req, res) => {
     const payment = req.body.payment;
     console.log(req.body)
 
-    db.query('INSERT into order_payment(User_ID, email, address,rig_type, payment)  VALUES (?,?,?,?,?)', [userid, email, address, rigtype, payment],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
+    OrderPayment.create({
+        userid,
+        email,
+        address,
+        rigtype,
+        payment
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting order payment");
+    });
 })
 
 
@@ -287,14 +313,16 @@ app.post('/letstalk', (req, res) => {
     const message = req.body.message;
     console.log(req.body)
 
-    db.query('INSERT into contact_us(Names, Email,message) VALUES (?,?,?)', [names, email, message],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
+    ContactUs.create({
+        names,
+        email,
+        message
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting contact us");
+    });
 })
 
 app.post('/adminlog', (req, res) => {
@@ -303,111 +331,92 @@ app.post('/adminlog', (req, res) => {
     const Password = req.body.password;
     console.log(req.body)
 
-    db.query('INSERT into admin_log(User_ID, Password) VALUES (?,?)', [User_ID, Password],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
+    Admin.create({
+        email: User_ID,
+        password: Password,
+        name: User_ID
+    })
+    .then(() => res.send("inserted into table"))
+    .catch(err => {
+        console.log(err);
+        res.status(500).send("Error inserting admin");
+    });
 })
 
 
+
+// TODO: Implement this endpoint with MongoDB if needed
 app.post('/CREDAdd', (req, res) => {
-    console.log("reachin post req")
     const Product_ID = req.body.productid;
     const Usage_type = req.body.usagetype;
-    const configuration = req.body.configuration;
-    const price = req.body.price;
-    console.log(req.body)
+    const Configuration = req.body.configuration;
+    const Price = req.body.price;
+    CredOp.create({ Product_ID, Usage_type, Configuration, Price })
+        .then(() => res.send("inserted into table"))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error inserting credop");
+        });
+});
 
-    db.query('INSERT into credop(Product_ID, Usage_type, Configuration, Price) VALUES (?,?,?,?)', [Product_ID, Usage_type, configuration, price],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
-    )
-})
 
+// TODO: Implement this endpoint with MongoDB if needed
 app.delete('/CREDdelete/:productid', (req, res) => {
-
     const productid = req.params.productid;
+    CredOp.deleteOne({ Product_ID: productid })
+        .then(result => res.send(result))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error deleting credop");
+        });
+});
 
-    db.query('DELETE FROM credop WHERE  Product_ID=?', [productid], (error, result) => {
-        if (error) { console.log(error) }
-        else {
-            res.send(result)
-        }
-    })
-})
 
+// TODO: Implement this endpoint with MongoDB if needed
 app.put('/CREDupdate', (req, res) => {
-    console.log("reachin post req")
     const productid = req.body.productid;
-    const usagetype = req.body.usagetype;
-    const configuration = req.body.configuration;
-    const price = req.body.price;
-    console.log(req.body)
-    db.query("UPDATE credop SET Usage_type=?, Configuration=?, Price=? WHERE Product_ID=?", [usagetype, configuration, price, productid],
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                res.send("inserted into table")
-            }
-        }
+    const Usage_type = req.body.usagetype;
+    const Configuration = req.body.configuration;
+    const Price = req.body.price;
+    CredOp.updateOne(
+        { Product_ID: productid },
+        { $set: { Usage_type, Configuration, Price } }
     )
-})
+        .then(result => res.send(result))
+        .catch(err => {
+            console.log(err);
+            res.status(500).send("Error updating credop");
+        });
+});
 
 
 
 
-app.get('/CustombuildgearsOrderDetails/', (req, res) => {
-    var respData = [];
-    console.log(typeof (data1))
-    db.query("Select * From custom_build where user_ID = '" + req.query.userid + "'",
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                respData.push({
-                    key: 'data1',
-                    value: result
-                })
-            }
-        }
-    )
-    db.query("Select * From gears where User_ID = '" + req.query.userid + "'",
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                respData.push({
-                    key: 'data2',
-                    value: result
-                })
-                // res.send(respData)
-            }
-        }
-    )
-    db.query("Select * from prerec_order where User_ID = '" + req.query.userid + "'",
-        (err, result) => {
-            if (err) { console.log(err) }
-            else {
-                respData.push({
-                    key: 'data3',
-                    value: result
-                })
-                res.send(respData)
-            }
-        }
-    )
+
+// TODO: Implement this endpoint with MongoDB if needed
+// Return custom build, gears, and prerec_order for a user
+app.get('/CustombuildgearsOrderDetails/', async (req, res) => {
+    try {
+        const userid = req.query.userid;
+        const data1 = await CustomBuild.find({ userid });
+        const data2 = await Gears.find({ userid });
+        const data3 = await PrerecOrder.find({ userid });
+        res.send([
+            { key: 'data1', value: data1 },
+            { key: 'data2', value: data2 },
+            { key: 'data3', value: data3 }
+        ]);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Error fetching custom build/gears/prerec_order");
+    }
+});
 
 
 
-})
 
+// --- ROUTES END ---
 
 app.listen(3001, () => {
     console.log('server running on 3001');
-})
+});

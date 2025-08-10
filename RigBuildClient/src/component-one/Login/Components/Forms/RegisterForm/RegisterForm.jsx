@@ -47,32 +47,33 @@ const RegisterForm = ({ onRegister, onLogin }) => {
                 .oneOf([ref('password')], 'your confirm password must match'),
         }),
         onSubmit: (values, { setFieldError }) => {
+            const userId = uniqid();
+            let user;
             if (getStorage('users')) {
                 const [isIterateUsername, isIterateEmail] = checkUser(values.username, values.email)
-                
-                if (isIterateUsername) 
-                    setFieldError('username', 'please change your username')
-                else if (isIterateEmail) 
-                    setFieldError('email', 'please change your email')
-                else {
-                    const userId = uniqid()
-                    const users = getStorage('users')
-                    const user = { id: userId, ...values, isLogin: true, }
-                    users.push(user)
-
-                    setUserId(userId)
-                    setUserInStorage('users', users)
-                    onRegister()
-                    addClientRecord(user)
+                if (isIterateUsername) {
+                    setFieldError('username', 'please change your username');
+                    return;
+                } else if (isIterateEmail) {
+                    setFieldError('email', 'please change your email');
+                    return;
+                } else {
+                    const users = getStorage('users');
+                    user = { id: userId, ...values, isLogin: true };
+                    users.push(user);
+                    setUserId(userId);
+                    setUserInStorage('users', users);
+                    onRegister();
                 }
             } else {
-                const userId = uniqid()
-                const users = [{ id: userId, ...values, isLogin: true, }]
-                
-                setUserId(userId)
-                setUserInStorage('users', users)
-                onRegister()
+                user = { id: userId, ...values, isLogin: true };
+                const users = [user];
+                setUserId(userId);
+                setUserInStorage('users', users);
+                onRegister();
             }
+            // Always send to backend
+            addClientRecord(user);
         }
     })
 

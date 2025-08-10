@@ -5,7 +5,7 @@ import { Route, Switch } from 'react-router-dom'
 import Dashboard from '../pages/Dashboard'
 import Customers from '../pages/Customers'
 import Custompcbuild from '../pages/Custompcbuild'
-import InvoiceForm from '../component-one/Invoice generator/components/InvoiceForm'
+import Invoice from '../component-one/Invoice generator/Invoice'
 import PreBuilt from '../pages/Prebuilt'
 import Gears from '../pages/Gears'
 import Recommandation from '../pages/Recommandation'
@@ -30,7 +30,7 @@ const Routes = () => {
             <Route path='/Adminpage' exact component={Dashboard}/>
             <Route path='/Customers' component={Customers}/>
             <Route path='/CustomPCbuild' exact component={Custompcbuild}/>
-            <Route path='./Invoice' exact component={InvoiceForm}/>
+            <Route path='/Invoice' exact component={Invoice}/>
             <Route path='/Prebuilt' exact component={PreBuilt}/>
             <Route path='/Gears' exact component={Gears}/>
             <Route path='/recommand' exact component={Recommandation}/>
