@@ -1,21 +1,21 @@
 // --- Forgot Password (Reset) Endpoint ---
-app.post('/resetpassword', async (req, res) => {
-    const { username, newPassword } = req.body;
-    if (!username || !newPassword) {
-        return res.status(400).json({ success: false, message: 'Username and new password are required.' });
-    }
-    try {
-        const result = await User.updateOne({ username }, { $set: { password: newPassword } });
-        if (result.modifiedCount > 0) {
-            res.json({ success: true, message: 'Password updated successfully.' });
-        } else {
-            res.json({ success: false, message: 'User not found or password not changed.' });
-        }
-    } catch (err) {
-        console.log('Error resetting password:', err);
-        res.status(500).json({ success: false, message: 'Server error.' });
-    }
-});
+// app.post('/resetpassword', async (req, res) => {
+//     const { username, newPassword } = req.body;
+//     if (!username || !newPassword) {
+//         return res.status(400).json({ success: false, message: 'Username and new password are required.' });
+//     }
+//     try {
+//         const result = await User.updateOne({ username }, { $set: { password: newPassword } });
+//         if (result.modifiedCount > 0) {
+//             res.json({ success: true, message: 'Password updated successfully.' });
+//         } else {
+//             res.json({ success: false, message: 'User not found or password not changed.' });
+//         }
+//     } catch (err) {
+//         console.log('Error resetting password:', err);
+//         res.status(500).json({ success: false, message: 'Server error.' });
+//     }
+// });
 
 
 // --- CLEANED UP AND REORDERED CODE ---
