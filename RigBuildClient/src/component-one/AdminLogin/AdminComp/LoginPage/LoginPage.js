@@ -1,64 +1,79 @@
-import React from 'react';
-import { Button, Col, Container, Form, Row } from "react-bootstrap";
-import { useState } from 'react';
-import Axios from 'axios'
+import React, { useState } from "react";
+import "./LoginPage.css";
+import { Container, Form, Button } from "react-bootstrap";
+import Axios from "axios";
 
+export default function LoginPage() {
+  const [username, setUsername] = useState(""); // changed from email to username
+  const [password, setPassword] = useState("");
 
-const LoginPage = () => {
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-    const AdminLogin = () => {
-        console.log(email, password);
-        Axios.post("http://localhost:3001/AdminSignin", {
-            email: email,
-            password: password,
-        })
-            .then((res) => {
-                console.log("Successfully sent the cresa.");
-                console.log(res);
-                if (res.data.token) {
-                    console.log("Token recieved");
-                    document.cookie = res.data.token + "; Path=/;";
-                    console.log(document.cookie);
-                    window.location.replace("http://localhost:3000/Adminpage");
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                alert("invalid email or password")
-            });
-    };
+    console.log("Logging in with:", username, password);
 
+    Axios.post("http://localhost:3001/AdminSignin", {
+      username: username, // send username field (adjust backend if needed)
+      password: password,
+    })
+      .then((res) => {
+        console.log("Successfully sent the request.");
+        console.log(res);
+        if (res.data.token) {
+          console.log("Token received");
+          document.cookie = res.data.token + "; Path=/;";
+          console.log(document.cookie);
+          window.location.replace("http://localhost:3000/Adminpage");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Invalid username or password");
+      });
+  };
 
-    return (
-        <>
-            <Container>
-                <h1 className="shadow-sm text-success mt-5 p-3 text-center rounded">Admin Login</h1>
-                <Row className="mt-5">
-                    <Col lg={5} md={6} sm={12} className="p-5 m-auto shadow-sm rounded-lg">
-                        <Form>
-                            <Form.Group controlId="formBasicEmail">
-                                <Form.Label>Email address</Form.Label>
-                                <Form.Control type="email" required placeholder="Enter email"
-                                    onChange={(event) => { setEmail(event.target.value) }} />
-                            </Form.Group>
-                            <Form.Group controlId="formBasicPassword">
-                                <Form.Label>Password</Form.Label>
-                                <Form.Control type="password" required placeholder="Password"
-                                    onChange={(event) => { setPassword(event.target.value) }} />
-                            </Form.Group>
+  return (
+    <div className="gaming-container">
+      {/* Background Video */}
+      <video autoPlay loop muted className="video-background">
+        <source src="/video/test.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-                            <Button onClick={AdminLogin} variant="success btn-block" type="submit">
-                                Login
-                            </Button>
-                        </Form>
-                    </Col>
-                </Row>
-                <h6 className="mt-5 p-5 text-center text-secondary ">Copyright © 2022 RIG BUILDER. All Rights Reserved.</h6>
-            </Container>
-        </>
-    );
-};
+      {/* Login Card */}
+      <Container className="gaming-card">
+        <h1 className="gaming-title">Admin Login</h1>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="formBasicUsername">
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              type="text" // changed from email to text
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoComplete="username"
+            />
+          </Form.Group>
 
-export default LoginPage;
+          <Form.Group className="mb-3" controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </Form.Group>
+
+          <Button className="gaming-btn" type="submit" block>
+            Login
+          </Button>
+        </Form>
+        <div className="gaming-footer">© 2025 RIG BUILDER, All Rights Reserved.</div>
+      </Container>
+    </div>
+  );
+}
